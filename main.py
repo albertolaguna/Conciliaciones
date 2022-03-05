@@ -1,3 +1,4 @@
+from ctypes import alignment
 from pandas import read_excel, ExcelFile
 from tkinter import filedialog as fd
 from datetime import datetime, date
@@ -5,6 +6,7 @@ from copy import copy
 import tkinter as tk
 import traceback
 import openpyxl
+from openpyxl.styles import Alignment
 import time
 import os
 import re
@@ -189,6 +191,7 @@ def run(sap_file, bank_file, output_folder):
             sheet.cell(row=row_idx, column=5).value = datetime.strptime(record['Date'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y')
             sheet.cell(row=row_idx, column=6).value = record['Assignation']
             sheet.cell(row=row_idx, column=7).value = float(record['Ammount'])
+        sheet.cell(row=row_idx - 1, column=8).value = f'=SUM(G{row_idx}:G{row_idx + len(our_charges_not_reciprocated_by_the_bank) - 1})'
 
         row_idx += len(our_charges_not_reciprocated_by_the_bank) + 2
         for record in charges_from_the_bank_not_reciprocated_by_us:
@@ -197,6 +200,8 @@ def run(sap_file, bank_file, output_folder):
             sheet.cell(row=row_idx, column=5).value = datetime.strptime(record['Date'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y')
             sheet.cell(row=row_idx, column=6).value = record['Concept']
             sheet.cell(row=row_idx, column=7).value = float(record['Withdrawal'])
+        sheet.cell(row=row_idx - 1, column=8).value = f'=SUM(G{row_idx}:G{row_idx + len(charges_from_the_bank_not_reciprocated_by_us) - 1})'
+        cell_charges_from_the_bank_not_reciprocated_by_us = f'H{row_idx - 1}'
 
         row_idx += len(charges_from_the_bank_not_reciprocated_by_us) + 2
         for record in our_payments_not_reciprocated_by_the_bank:
@@ -205,6 +210,8 @@ def run(sap_file, bank_file, output_folder):
             sheet.cell(row=row_idx, column=5).value = datetime.strptime(record['Date'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y')
             sheet.cell(row=row_idx, column=6).value = record['Assignation']
             sheet.cell(row=row_idx, column=7).value = float(record['Ammount'])
+        sheet.cell(row=row_idx - 1, column=8).value = f'=SUM(G{row_idx}:G{row_idx + len(our_payments_not_reciprocated_by_the_bank) - 1})'
+        cell_our_payments_not_reciprocated_by_the_bank = f'H{row_idx - 1}'
 
         row_idx += len(our_payments_not_reciprocated_by_the_bank) + 2
         for record in payments_from_the_bank_not_reciprocated_by_us:
@@ -213,6 +220,17 @@ def run(sap_file, bank_file, output_folder):
             sheet.cell(row=row_idx, column=5).value = datetime.strptime(record['Date'], '%Y-%m-%d %H:%M:%S').strftime('%d/%m/%Y')
             sheet.cell(row=row_idx, column=6).value = record['Concept']
             sheet.cell(row=row_idx, column=7).value = float(record['Deposit'])
+        sheet.cell(row=row_idx - 1, column=8).value = f'=SUM(G{row_idx}:G{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) - 1})'
+        cell_payments_from_the_bank_not_reciprocated_by_us = f'H{row_idx - 1}'
+
+        sheet.merge_cells(f'D{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 2}:G{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 2}')
+        sheet.cell(row=row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 2, column=4).alignment = Alignment(horizontal='center', vertical='center')
+        
+        sheet.merge_cells(f'D{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 3}:G{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 3}')
+        sheet.cell(row=row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 3, column=4).alignment = Alignment(horizontal='center', vertical='center')
+
+        sheet.cell(row=row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 1, column=8).value = f'=+H9+H11+{cell_charges_from_the_bank_not_reciprocated_by_us}-{cell_our_payments_not_reciprocated_by_the_bank}-{cell_payments_from_the_bank_not_reciprocated_by_us}'
+        sheet.cell(row=row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 3, column=8).value = f'=H{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 1}-H{row_idx + len(payments_from_the_bank_not_reciprocated_by_us) + 2}'
 
         now = date.today()
         version = 0
