@@ -28,10 +28,11 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
 Para generar el ejecutable es necesario tener instalados los requerimientos (es estos se incluye **pyinstaller**) y ejecutar los siguientes comandos dentro del entorno virtual:
 
 ```Powershell
+rm -r .\Conciliaciones\
 pyinstaller.exe --noconsole --windowed --icon=img\logo.ico --name=Conciliaciones  main.py/
 mv .\dist\Conciliaciones\ .
 rm -r .\__pycache__\, .\build\, .\dist\, .\Conciliaciones.spec
-cp .\img\, .\templates\ .\Conciliaciones\
+cp -r .\img\, .\templates\ .\Conciliaciones\
 ```
 
 ## Instalación
